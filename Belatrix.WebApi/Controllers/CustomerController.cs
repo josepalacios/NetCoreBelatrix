@@ -1,5 +1,4 @@
-﻿
-using Belatrix.WebApi.Models;
+﻿using Belatrix.WebApi.Models;
 using Belatrix.WebApi.Repository;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;

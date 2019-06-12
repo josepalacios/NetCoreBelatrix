@@ -1,41 +1,37 @@
-﻿using Belatrix.WebApi.Repository.Postgresql;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Belatrix.WebApi.Repository
+namespace Belatrix.WebApi.Repository.Postgresql
 {
-    public class Repository<T> : IRepository<T> where T :class
+    public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly BelatrixDbContext dataBase;
+        private readonly BelatrixDbContext _db;
         public Repository(BelatrixDbContext db)
         {
-            dataBase = db;
+            _db = db;
         }
-        
-        public Task<int> Create(T entity)
+        public async Task<int> Create(T entity)
         {
-            dataBase.AddAsync(entity);
-            return dataBase.SaveChangesAsync();
-        }
-
-        public async Task<bool> Delete(T entity)
-        {
-            dataBase.Attach(entity).State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
-            return await dataBase.SaveChangesAsync() > 0;
+            await _db.AddAsync(entity);
+            return await _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<T>> Read()
         {
-            return await dataBase.Set<T>().AsNoTracking().ToListAsync();
+            return await _db.Set<T>().AsNoTracking().ToListAsync();
         }
 
         public async Task<bool> Update(T entity)
         {
-            dataBase.Attach(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-            return await dataBase.SaveChangesAsync() > 0;
+            _db.Update(entity);
+            return await _db.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> Delete(T entity)
+        {
+            _db.Remove(entity);
+            return await _db.SaveChangesAsync() > 0;
         }
     }
 }

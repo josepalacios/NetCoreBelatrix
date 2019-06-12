@@ -1,27 +1,56 @@
 ﻿using Belatrix.WebApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Belatrix.WebApi.Repository.Postgresql.Configurations
 {
-    public class OrderItemConfig : IEntityTypeConfiguration<OrderItem>
+    internal class OrderItemConfig : IEntityTypeConfiguration<OrderItem>
     {
         public void Configure(EntityTypeBuilder<OrderItem> builder)
         {
-            builder.ToTable("order_item");
+            builder.ToTable("order_item")
+                .HasKey(c => c.Id)
+                .HasName("order_item__id__pkey"); ;
 
-            builder.Property(p => p.Id).HasColumnName("id").UseNpgsqlIdentityColumn();
-            builder.Property(p => p.Quantity).HasColumnName("quantity").IsRequired();
-            builder.Property(p => p.UnitPrice).HasColumnName("unit_price").IsRequired();
+            builder.HasIndex(e => e.OrderId)
+                .HasName("order_item__order_id__idx");
 
-            builder.HasIndex(i => i.OrderId).HasName("order_item__order_id__idx");
-            builder.HasIndex(i => i.ProductId).HasName("order_item__product_id__idx");
+            builder.HasIndex(e => e.ProductId)
+                .HasName("order_item__produc_tid__idx");
 
-            builder.HasOne(x => x.Order).WithMany(x => x.OrderItems).HasForeignKey(x => x.OrderId).HasConstraintName("order_id").IsRequired();
-            builder.HasOne(x => x.Product).WithMany(x => x.OrderItem).HasForeignKey(x => x.ProductId).HasConstraintName("product_id").IsRequired();
+            builder.Property(e => e.Id)
+                .HasColumnName("id")
+                .UseNpgsqlIdentityColumn();
+
+            builder.Property(e => e.OrderId)
+                .HasColumnName("order_id")
+                .IsRequired();
+
+            builder.Property(e => e.ProductId)
+                .HasColumnName("product_id")
+                .IsRequired();
+
+            builder.Property(e => e.Quantity)
+                .HasColumnName("quantity")
+                .HasDefaultValueSql("1")
+                .IsRequired();
+
+            builder.Property(e => e.UnitPrice)
+                .HasColumnName("unit_price")
+                .HasColumnType("numeric(12,2)")
+                .IsRequired();
+
+            builder.HasOne(d => d.Order)
+                .WithMany(p => p.OrderItem)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("order_item__reference_order__fkey");
+
+            builder.HasOne(d => d.Product)
+                .WithMany(p => p.OrderItem)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("order_item__reference_product__fkey");
         }
     }
 }
